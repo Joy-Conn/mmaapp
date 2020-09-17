@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+    <table>
+        <tr>
+            <td>検索件数：</td>
+            <td><input type="text" id="numInput" value="" style="width: 200px"></td>
+        </tr>
+        <tr>
+            <td>KeyWord：</td>
+            <td><input type="text" id="keywordInput" value="" style="width: 200px"></td>
+        </tr>
+        <tr>
+            <td>検索場所：</td>
+            <td>
+                <select id="placeInput">
+                    <option value="cafe" selected>カフェ</option>
+                    <option value="resutaurant">レストラン</option>
+                    <option value="liquor_store">酒店</option>
+                    <option value="food">飲食店</option>
+                    <option value="bakery">パン屋</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>検索範囲：</td>
+            <td>
+                <select id="radiusInput">
+                    <option value="200" selected>200 m</option>
+                    <option value="500">500 m</option>
+                    <option value="1000">1 km</option>
+                    <option value="2000">2 km</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="padding: 10px">
+                <input type="button" value="お店情報取得" onclick="getPlaces();">
+            </td>
+        </tr>
+    </table>
+
+    <div id="mapArea" style="width: 70%; height:500px;"></div>
+    <div id="results" style="width: 100%; height: 200px; border: 1px dotted; padding: 10px; overflow-y: scroll; background: white;"></div>
+    <br />
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCdQIdXaTZvKkpZj8GjxXYO2NVR0QXxVPk&libraries=places&callback=initMap" async defer></script>
+    <script type="text/javascript">
+        var placesList;
+        var map;
+        var key = 0;
+        /*
+         地図の初期表示
+        */
+        function initMap() {
+            navigator.geolocation.getCurrentPosition(
+                function (position) {
+                    var latitude = position.coords.latitude;
+                    var longitude = position.coords.longitude;
+                    var latlng = new google.maps.LatLng(latitude, longitude);
+                    new google.maps.Map(document.getElementById("mapArea"), {
+                        zoom: 13,
+                        center: latlng,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP
+                    });
+                });
+        }
+
+        /*
+         お店情報取得
+        */
+        //function getPlaces() {
+
+        //    //結果表示クリア
+        //    document.getElementById("results").innerHTML = "";
+        //    //placesList配列を初期化
+        //    placesList = new Array();
+
+        //    //入力した検索場所を取得
+        //    var addressInput = document.getElementById("addressInput").value;
+        //    if (addressInput == "") {
+        //        return;
+        //    }
+
+        //    //検索場所の位置情報を取得
+        //    var geocoder = new google.maps.Geocoder();
+        //    geocoder.geocode(
+        //        {
+        //            address: addressInput
+        //        },
+        //        function (results, status) {
+        //            if (status == google.maps.GeocoderStatus.OK) {
+        //                //取得した緯度・経度を使って周辺検索
+        //                startNearbySearch(results[0].geometry.location);
+        //            }
+        //            else {
+        //                alert(addressInput + "：位置情報が取得できませんでした。");
+        //            }
+        //        });
+        //}
+
+        function getPlaces() {
+            placesList = new Array();
+            navigator.geolocation.getCurrentPosition(
+                function (position) {
+                    var latitude = position.coords.latitude;
+                    var longitude = position.coords.longitude;
+                    var latlng = new google.maps.LatLng(latitude, longitude);
+                    startNearbySearch(latlng);
+                });
+            key = 0;
+        }
+
+        /*
+         位置情報を使って周辺検索
+          latLng : 位置座標インスタンス（google.maps.LatLng）
+        */
+        function startNearbySearch(latLng) {
+
+            //読み込み中表示
+            document.getElementById("results").innerHTML = "Now Loading...";
+
+            //入力したKeywordを取得
+            var keywordInput = document.getElementById("keywordInput").value;
+
+            //入力したKeywordを取得
+            var placeInput = document.getElementById("placeInput").value;
+
+            //入力した検索範囲を取得
+            var obj = document.getElementById("radiusInput");
+            var radiusInput = Number(obj.options[obj.selectedIndex].value);
+
+            //Mapインスタンス生成 検索範囲ごとの拡大設定
+            if (radiusInput == 200) {
+                map = new google.maps.Map(
+                    document.getElementById("mapArea"),
+                    {
+                        zoom: 17,
+                        center: latLng,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP
+                    }
+                );
+            }
+            else if (radiusInput == 500) {
+                map = new google.maps.Map(
+                    document.getElementById("mapArea"),
+                    {
+                        zoom: 16,
+                        center: latLng,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP
+                    }
+                );
+            }
+            else if (radiusInput == 1000) {
+                map = new google.maps.Map(
+                    document.getElementById("mapArea"),
+                    {
+                        zoom: 15,
+                        center: latLng,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP
+                    }
+                );
+            }
+            else if (radiusInput == 2000) {
+                map = new google.maps.Map(
+                    document.getElementById("mapArea"),
+                    {
+                        zoom: 14,
+                        center: latLng,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP
+                    }
+                );
+            }
+
+            //PlacesServiceインスタンス生成
+            var service = new google.maps.places.PlacesService(map);
+
+            //周辺検索  複数対応させる
+            if (placeInput == "cafe") {
+                service.nearbySearch(
+                    {
+                        location: latLng,
+                        radius: radiusInput,
+                        type: ['cafe'],
+                        language: 'ja'
+                    }, callback
+                );
+            }
+            else if (placeInput == "resutaurant") {
+                service.nearbySearch(
+                    {
+                        location: latLng,
+                        radius: radiusInput,
+                        type: ['restaurant'],
+                        keyword: keywordInput,
+                        language: 'ja'
+                    },  callback
+                );
+            }
+            else if (placeInput == "liquor_store") {
+                service.nearbySearch(
+                    {
+                        location: latLng,
+                        radius: radiusInput,
+                        type: ['liquor_store'],
+                        keyword: keywordInput,
+                        language: 'ja'
+                    }, callback
+                );
+            }
+            else if (placeInput == "food") {
+                service.nearbySearch(
+                    {
+                        location: latLng,
+                        radius: radiusInput,
+                        type: ['food'],
+                        keyword: keywordInput,
+                        language: 'ja'
+                    }, callback
+                );
+            }
+            else if (placeInput == "bakery") {
+                service.nearbySearch(
+                    {
+                        location: latLng,
+                        radius: radiusInput,
+                        type: ['bakery'],
+                        keyword: keywordInput,
+                        language: 'ja'
+                    }, callback
+                );
+            }
+
+            //検索範囲の円を描く
+            var circle = new google.maps.Circle(
+                {
+                    map: map,
+                    center: latLng,
+                    radius: radiusInput,
+                    fillColor: '#ffff88',
+                    fillOpacity: 0.3,
+                    strokeColor: '#ffff88',
+                    strokeOpacity: 0.5,
+                    strokeWeight: 1
+                });
+        }
+
+        /*
+         周辺検索の結果表示
+         ※nearbySearchのコールバック関数
+          results : 検索結果
+          status ： 実行結果ステータス
+          pagination : ページネーション
+        */
+        function displayResults(results, status, pagination) {
+
+            if (status == google.maps.places.PlacesServiceStatus.OK) {
+                
+                //検索結果をplacesList配列に連結
+                placesList = placesList.concat(results);
+
+                //pagination.hasNextPage==trueの場合、
+                //続きの検索結果あり
+                if (pagination.hasNextPage) {
+
+                    //pagination.nextPageで次の検索結果を表示する
+                    //※連続実行すると取得に失敗するので、
+                    //  1秒くらい間隔をおく
+                    setTimeout(pagination.nextPage(), 1000);
+
+                    //pagination.hasNextPage==falseになったら
+                    //全ての情報が取得できているので、
+                    //結果を表示する
+                } else {
+
+                    //ソートを正しく行うため、
+                    //ratingが設定されていないものを
+                    //一旦「-1」に変更する。
+                    for (var i = 0; i < placesList.length; i++) {
+                        if (placesList[i].rating == undefined) {
+                            placesList[i].rating = -1;
+                        }
+                    }
+
+                    //ratingの降順でソート（連想配列ソート）
+                    placesList.sort(function (a, b) {
+                        if (a.rating > b.rating) return -1;
+                        if (a.rating < b.rating) return 1;
+                        return 0;
+                    });
+
+                    //placesList配列をループして、
+                    //結果表示のHTMLタグを組み立てる
+                    var resultHTML = "<ol>";
+
+                    for (var i = 0; i < placesList.length; i++) {
+                        place = placesList[i];
+
+                        //ratingが-1のものは「---」に表示変更
+                        var rating = place.rating;
+                        if (rating == -1) rating = "---";
+
+                        //表示内容（評価＋名称）
+                        var content = "【" + rating + "】 " + place.name;
+
+                        //クリック時にMapにマーカー表示するようにAタグを作成
+                        resultHTML += "<li>";
+                        resultHTML += "<a href=\"javascript: void(0);\"";
+                        resultHTML += " onclick=\"createMarker(";
+                        resultHTML += "'" + place.name + "',";
+                        resultHTML += "'" + place.vicinity + "',";
+                        resultHTML += place.geometry.location.lat() + ",";
+                        resultHTML += place.geometry.location.lng() + ")\">";
+                        resultHTML += content;
+                        resultHTML += "</a>";
+                        resultHTML += "</li>";
+                    }
+
+                    resultHTML += "</ol>";
+
+                    //結果表示
+                    document.getElementById("results").innerHTML = resultHTML;
+                }
+
+            } else {
+                //エラー表示
+                var results = document.getElementById("results");
+                if (status == google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+                    results.innerHTML = "検索結果が0件です。";
+                } else if (status == google.maps.places.PlacesServiceStatus.ERROR) {
+                    results.innerHTML = "サーバ接続に失敗しました。";
+                } else if (status == google.maps.places.PlacesServiceStatus.INVALID_REQUEST) {
+                    results.innerHTML = "リクエストが無効でした。";
+                } else if (status == google.maps.places.PlacesServiceStatus.OVER_QUERY_LIMIT) {
+                    results.innerHTML = "リクエストの利用制限回数を超えました。";
+                } else if (status == google.maps.places.PlacesServiceStatus.REQUEST_DENIED) {
+                    results.innerHTML = "サービスが使えない状態でした。";
+                } else if (status == google.maps.places.PlacesServiceStatus.UNKNOWN_ERROR) {
+                    results.innerHTML = "原因不明のエラーが発生しました。";
+                }
+
+            }
+        }
+
+        function callback(results, status,pagination) {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                //入力したnumを取得
+                var numInput = document.getElementById("numInput").value;
+                if (numInput >= results.length)
+                    numInput = results.length;
+
+                //検索結果をplacesList配列に連結
+                placesList = placesList.concat(results);
+
+                //pagination.hasNextPage==trueの場合、
+                //続きの検索結果あり
+                if (pagination.hasNextPage) {
+
+                    //pagination.nextPageで次の検索結果を表示する
+                    //※連続実行すると取得に失敗するので、
+                    //  1秒くらい間隔をおく
+                    setTimeout(pagination.nextPage(), 1000);
+
+                    //pagination.hasNextPage==falseになったら
+                    //全ての情報が取得できているので、
+                    //結果を表示する
+                } else {
+
+                    //ソートを正しく行うため、
+                    //ratingが設定されていないものを
+                    //一旦「-1」に変更する。
+                    for (var i = 0; i < placesList.length; i++) {
+                        if (placesList[i].rating == undefined) {
+                            placesList[i].rating = -1;
+                        }
+                    }
+
+                    //ratingの降順でソート（連想配列ソート）
+                    placesList.sort(function (a, b) {
+                        if (a.rating > b.rating) return -1;
+                        if (a.rating < b.rating) return 1;
+                        return 0;
+                    });
+
+                    //placesList配列をループして、
+                    //結果表示のHTMLタグを組み立てる
+                    var resultHTML = "<ol>";
+
+                    for (var i = 0; i < numInput; i++) {
+                        place = placesList[i];
+
+                        //ratingが-1のものは「---」に表示変更
+                        var rating = place.rating;
+                        if (rating == -1) rating = "---";
+
+                        //表示内容（評価＋名称）
+                        var content = "【" + rating + "】 " + place.name;
+
+                        //クリック時にMapにマーカー表示するようにAタグを作成
+                        resultHTML += "<li>";
+                        resultHTML += "<a href=\"javascript: void(0);\"";
+                        resultHTML += " onclick=\"createMarker(";
+                        resultHTML += "'" + place.name + "',";
+                        resultHTML += "'" + place.vicinity + "',";
+                        resultHTML += place.geometry.location.lat() + ",";
+                        resultHTML += place.geometry.location.lng() + ")\">";
+                        resultHTML += content;
+                        resultHTML += "</a>";
+                        resultHTML += "</li>";
+                    }
+
+                    resultHTML += "</ol>";
+
+                    //結果表示
+                    document.getElementById("results").innerHTML = resultHTML;
+
+                    if (key == 0) {
+                        //入力したnumを取得
+                        for (var i = 0; i < numInput; i++) {
+                            if (i == 0)
+                                createMarker1(placesList[i]);
+                            else if (i == 1)
+                                createMarker2(placesList[i]);
+                            else if (i == 2)
+                                createMarker3(placesList[i]);
+                            else 
+                                createMarker(placesList[i]);
+                        }
+                        key = 1;
+                    }
+                }
+            }
+        }
+        /*
+         マーカー表示
+          name : 名称
+          vicinity : 近辺住所
+          lat : 緯度
+          lng : 経度
+        */
+        function createMarker(name, vicinity, lat, lng) {
+
+        //    //マーカー表示する位置のMap表示
+        //    var map = new google.maps.Map(document.getElementById("mapArea"), {
+        //        zoom: 15,
+        //        center: new google.maps.LatLng(lat, lng),
+        //        mapTypeId: google.maps.MapTypeId.ROADMAP
+        //    });
+
+        //    //マーカー表示
+        //    var marker = new google.maps.Marker({
+        //        map: map,
+        //        position: new google.maps.LatLng(lat, lng)
+        //    });
+        //    //情報窓の設定
+        //    var info = "<div style=\"min-width: 100px\">";
+        //    info += name + "<br />";
+        //    info += vicinity + "<br />";
+        //    info += "<a href=\"https://maps.google.co.jp/maps?q=" + encodeURIComponent(name + " " + vicinity) + "&z=15&iwloc=A\"";
+        //    info += " target=\"_blank\">⇒詳細表示</a><br />";
+        //    info += "<a href=\"https://www.google.com/maps/dir/?api=1&destination=" + lat + "," + lng + "\"";
+        //    info += " target=\"_blank\">⇒ここへ行く</a>";
+        //    info += "</div>";
+
+        //    //情報窓の表示
+        //    var infoWindow = new google.maps.InfoWindow({
+        //        content: info
+        //    });
+        //    infoWindow.open(map, marker);
+
+        //    //マーカーのクリック時にも情報窓を表示する
+        //    marker.addListener("click", function () {
+        //        infoWindow.open(map, marker);
+        //    });
+        }
+
+        function createMarker1(place) {
+            //マーカー表示
+            var marker = new google.maps.Marker({
+                map: map,
+                position: place.geometry.location,
+                icon: {
+                    url: 'rank_1.png'
+                },
+            });
+
+            //情報窓の設定
+            var info = "<div style=\"min-width: 100px\">";
+            info += place.name + "<br />";
+            info += "<a href=\"https://www.google.com/maps/dir/?api=1&destination=" + place.geometry.location.lat() + "," + place.geometry.location.lng() + "\"";
+            info += " target=\"_blank\">⇒ここへ行く</a>";
+            info += "</div>";
+
+            //情報窓の表示
+            var infoWindow = new google.maps.InfoWindow({
+                content: info
+            });
+            //infoWindow.open(map, marker);
+
+            //マーカーのクリック時にも情報窓を表示する
+            marker.addListener("click", function () {
+                infoWindow.open(map, marker);
+            });
+        }
+        function createMarker2(place) {
+            //マーカー表示
+            var marker = new google.maps.Marker({
+                map: map,
+                position: place.geometry.location,
+                icon: {
+                    url: 'rank_2.png'
+                },
+            });
+
+            //情報窓の設定
+            var info = "<div style=\"min-width: 100px\">";
+            info += place.name + "<br />";
+            info += "<a href=\"https://www.google.com/maps/dir/?api=1&destination=" + place.geometry.location.lat() + "," + place.geometry.location.lng() + "\"";
+            info += " target=\"_blank\">⇒ここへ行く</a>";
+            info += "</div>";
+
+            //情報窓の表示
+            var infoWindow = new google.maps.InfoWindow({
+                content: info
+            });
+            //infoWindow.open(map, marker);
+
+            //マーカーのクリック時にも情報窓を表示する
+            marker.addListener("click", function () {
+                infoWindow.open(map, marker);
+            });
+        }
+        function createMarker3(place) {
+            //マーカー表示
+            var marker = new google.maps.Marker({
+                map: map,
+                position: place.geometry.location,
+                icon: {
+                    url: 'rank_3.png'
+                },
+            });
+
+            //情報窓の設定
+            var info = "<div style=\"min-width: 100px\">";
+            info += place.name + "<br />";
+            info += "<a href=\"https://www.google.com/maps/dir/?api=1&destination=" + place.geometry.location.lat() + "," + place.geometry.location.lng() + "\"";
+            info += " target=\"_blank\">⇒ここへ行く</a>";
+            info += "</div>";
+
+            //情報窓の表示
+            var infoWindow = new google.maps.InfoWindow({
+                content: info
+            });
+            //infoWindow.open(map, marker);
+
+            //マーカーのクリック時にも情報窓を表示する
+            marker.addListener("click", function () {
+                infoWindow.open(map, marker);
+            });
+        }
+        function createMarker(place) {
+            //マーカー表示
+            var marker = new google.maps.Marker({
+                map: map,
+                position: place.geometry.location,
+            });
+
+            //情報窓の設定
+            var info = "<div style=\"min-width: 100px\">";
+            info += place.name + "<br />";
+            info += "<a href=\"https://www.google.com/maps/dir/?api=1&destination=" + place.geometry.location.lat() + "," + place.geometry.location.lng() + "\"";
+            info += " target=\"_blank\">⇒ここへ行く</a>";
+            info += "</div>";
+
+            //情報窓の表示
+            var infoWindow = new google.maps.InfoWindow({
+                content: info
+            });
+            //infoWindow.open(map, marker);
+
+            //マーカーのクリック時にも情報窓を表示する
+            marker.addListener("click", function () {
+                infoWindow.open(map, marker);
+            });
+        }
+    </script>
+</body>
+</html>
