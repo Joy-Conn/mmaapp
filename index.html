@@ -3,53 +3,123 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
-    <title></title>
 </head>
 <body>
-    <table>
-        <tr>
-            <td>検索件数：</td>
-            <td><input type="text" id="numInput" value="" style="width: 200px"></td>
-        </tr>
-        <tr>
-            <td>KeyWord：</td>
-            <td><input type="text" id="keywordInput" value="" style="width: 200px"></td>
-        </tr>
-        <tr>
-            <td>検索場所：</td>
-            <td>
-                <select id="placeInput">
-                    <option value="cafe" selected>カフェ</option>
-                    <option value="resutaurant">レストラン</option>
-                    <option value="liquor_store">酒店</option>
-                    <option value="food">飲食店</option>
-                    <option value="bakery">パン屋</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td>検索範囲：</td>
-            <td>
-                <select id="radiusInput">
-                    <option value="200" selected>200 m</option>
-                    <option value="500">500 m</option>
-                    <option value="1000">1 km</option>
-                    <option value="2000">2 km</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2" style="padding: 10px">
-                <input type="button" value="お店情報取得" onclick="getPlaces();">
-            </td>
-        </tr>
-    </table>
+    <input type="radio" name="langKbn" id="sJa" onClick="langSet('ja')" checked>
+    <label for="sJa">
+        <span class="langCng" lang="ja">日本語</span>
+        <span class="langCng" lang="en">Japanese</span>
+        <span class="langCng" lang="zh">日本</span>
+    </label>
 
-    <div id="mapArea" style="width: 110%; height:500px;"></div>
+    <input type="radio" name="langKbn" id="sEn" onClick="langSet('en')">
+    <label for="sEn">
+        <span class="langCng" lang="ja">英語</span>
+        <span class="langCng" lang="en">English</span>
+        <span class="langCng" lang="zh">英语</span>
+    </label>
+
+    <input type="radio" name="langKbn" id="sZh" onClick="langSet('zh')">
+    <label for="sZh">
+        <span class="langCng" lang="ja">中国語</span>
+        <span class="langCng" lang="en">Chinese</span>
+        <span class="langCng" lang="zh">中文</span>
+    </label>
+
+    <div>
+        <span class="langCng" lang="ja"> 検索件数：</span>
+        <span class="langCng" lang="en"> Searches：</span>
+        <span class="langCng" lang="zh"> 搜索次数：</span>
+        <input type="text" id="numInput" value="" style="width: 200px">
+        <br>
+
+        <span class="langCng" lang="ja"> キーワード：</span>
+        <span class="langCng" lang="en"> Keyword：</span>
+        <span class="langCng" lang="zh"> 关键词：</span>
+        <input type="text" id="keywordInput" value="" style="width: 200px">
+        <br>
+
+        <span class="langCng" lang="ja">検索場所：</span>
+        <span class="langCng" lang="en">Where to find：</span>
+        <span class="langCng" lang="zh">搜索位置：</span>
+        <select id="placeInput">
+            <option value="cafe" class="langCng" lang="ja" selected>カフェ</option>
+            <option value="cafe" class="langCng" lang="en">cafe</option>
+            <option value="cafe" class="langCng" lang="zh">咖啡厅</option>
+            <option value="resutaurant" class="langCng" lang="ja">レストラン</option>
+            <option value="resutaurant" class="langCng" lang="en">resutaurant</option>
+            <option value="resutaurant" class="langCng" lang="zh">餐厅</option>
+            <option value="liquor_store" class="langCng" lang="ja">酒店</option>
+            <option value="liquor_store" class="langCng" lang="en">liquor store</option>
+            <option value="liquor_store" class="langCng" lang="zh">酒店</option>
+            <option value="bakery" class="langCng" lang="ja">パン屋</option>
+            <option value="bakery" class="langCng" lang="en">bakery</option>
+            <option value="bakery" class="langCng" lang="zh">面包店</option>
+        </select>
+        <br>
+
+        <span class="langCng" lang="ja">検索範囲：</span>
+        <span class="langCng" lang="en">Search scope：</span>
+        <span class="langCng" lang="zh">搜索范围：</span>
+        <select id="radiusInput">
+            <option value="200" selected>200 m</option>
+            <option value="500">500 m</option>
+            <option value="1000">1 km</option>
+            <option value="2000">2 km</option>
+        </select>
+        <br>
+
+        <div class="langCng" lang="ja">
+            <span colspan="2" style="padding: 10px">
+                <input type="button" value="お店情報取得" onclick="getPlaces();">
+            </span>
+        </div>
+        <div class="langCng" lang="en">
+            <span colspan="2" style="padding: 10px">
+                <input type="button" value="Get the information" onclick="getPlaces();">
+            </span>
+        </div>
+        <div class="langCng" lang="zh">
+            <span colspan="2" style="padding: 10px">
+                <input type="button" value="获取信息" onclick="getPlaces();">
+            </span>
+        </div>
+
+    </div>
+
+    <div id="mapArea" style="width: 70%; height:500px;"></div>
     <div id="results" style="width: 100%; height: 200px; border: 1px dotted; padding: 10px; overflow-y: scroll; background: white;"></div>
     <br />
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCdQIdXaTZvKkpZj8GjxXYO2NVR0QXxVPk&libraries=places&callback=initMap" async defer></script>
     <script type="text/javascript">
+
+        //多言語化
+        window.onload = function () {
+            // --- ブラウザのデフォルト言語を取得して初回の表示 -----
+            var wDef = (navigator.browserLanguage || navigator.language || navigator.userLanguage).substr(0, 2);
+            langSet(wDef);
+        }
+
+        // =========================================================
+        //      選択された言語のみ表示
+        // =========================================================
+        function langSet(argLang) {
+
+            // --- 切り替え対象のclass一覧を取得 ----------------------
+            var elm = document.getElementsByClassName("langCng");
+
+            for (var i = 0; i < elm.length; i++) {
+
+                // --- 選択された言語と一致は表示、その他は非表示 -------
+                if (elm[i].getAttribute("lang") == argLang) {
+                    elm[i].style.display = '';
+                }
+                else {
+                    elm[i].style.display = 'none';
+                }
+            }
+        }
+
         var placesList;
         var map;
         var key = 0;
@@ -69,39 +139,6 @@
                     });
                 });
         }
-
-        /*
-         お店情報取得
-        */
-        //function getPlaces() {
-
-        //    //結果表示クリア
-        //    document.getElementById("results").innerHTML = "";
-        //    //placesList配列を初期化
-        //    placesList = new Array();
-
-        //    //入力した検索場所を取得
-        //    var addressInput = document.getElementById("addressInput").value;
-        //    if (addressInput == "") {
-        //        return;
-        //    }
-
-        //    //検索場所の位置情報を取得
-        //    var geocoder = new google.maps.Geocoder();
-        //    geocoder.geocode(
-        //        {
-        //            address: addressInput
-        //        },
-        //        function (results, status) {
-        //            if (status == google.maps.GeocoderStatus.OK) {
-        //                //取得した緯度・経度を使って周辺検索
-        //                startNearbySearch(results[0].geometry.location);
-        //            }
-        //            else {
-        //                alert(addressInput + "：位置情報が取得できませんでした。");
-        //            }
-        //        });
-        //}
 
         function getPlaces() {
             placesList = new Array();
@@ -139,7 +176,7 @@
                 map = new google.maps.Map(
                     document.getElementById("mapArea"),
                     {
-                        zoom: 16,
+                        zoom: 17,
                         center: latLng,
                         mapTypeId: google.maps.MapTypeId.ROADMAP
                     }
@@ -149,7 +186,7 @@
                 map = new google.maps.Map(
                     document.getElementById("mapArea"),
                     {
-                        zoom: 15,
+                        zoom: 16,
                         center: latLng,
                         mapTypeId: google.maps.MapTypeId.ROADMAP
                     }
@@ -159,7 +196,7 @@
                 map = new google.maps.Map(
                     document.getElementById("mapArea"),
                     {
-                        zoom: 14,
+                        zoom: 15,
                         center: latLng,
                         mapTypeId: google.maps.MapTypeId.ROADMAP
                     }
@@ -169,7 +206,7 @@
                 map = new google.maps.Map(
                     document.getElementById("mapArea"),
                     {
-                        zoom: 13,
+                        zoom: 14,
                         center: latLng,
                         mapTypeId: google.maps.MapTypeId.ROADMAP
                     }
@@ -198,7 +235,7 @@
                         type: ['restaurant'],
                         keyword: keywordInput,
                         language: 'ja'
-                    },  callback
+                    }, callback
                 );
             }
             else if (placeInput == "liquor_store") {
@@ -259,7 +296,7 @@
         function displayResults(results, status, pagination) {
 
             if (status == google.maps.places.PlacesServiceStatus.OK) {
-                
+
                 //検索結果をplacesList配列に連結
                 placesList = placesList.concat(results);
 
@@ -346,7 +383,7 @@
             }
         }
 
-        function callback(results, status,pagination) {
+        function callback(results, status, pagination) {
             if (status === google.maps.places.PlacesServiceStatus.OK) {
                 //入力したnumを取得
                 var numInput = document.getElementById("numInput").value;
@@ -427,7 +464,7 @@
                                 createMarker2(placesList[i]);
                             else if (i == 2)
                                 createMarker3(placesList[i]);
-                            else 
+                            else
                                 createMarker(placesList[i]);
                         }
                         key = 1;
@@ -442,41 +479,6 @@
           lat : 緯度
           lng : 経度
         */
-        function createMarker(name, vicinity, lat, lng) {
-
-        //    //マーカー表示する位置のMap表示
-        //    var map = new google.maps.Map(document.getElementById("mapArea"), {
-        //        zoom: 15,
-        //        center: new google.maps.LatLng(lat, lng),
-        //        mapTypeId: google.maps.MapTypeId.ROADMAP
-        //    });
-
-        //    //マーカー表示
-        //    var marker = new google.maps.Marker({
-        //        map: map,
-        //        position: new google.maps.LatLng(lat, lng)
-        //    });
-        //    //情報窓の設定
-        //    var info = "<div style=\"min-width: 100px\">";
-        //    info += name + "<br />";
-        //    info += vicinity + "<br />";
-        //    info += "<a href=\"https://maps.google.co.jp/maps?q=" + encodeURIComponent(name + " " + vicinity) + "&z=15&iwloc=A\"";
-        //    info += " target=\"_blank\">⇒詳細表示</a><br />";
-        //    info += "<a href=\"https://www.google.com/maps/dir/?api=1&destination=" + lat + "," + lng + "\"";
-        //    info += " target=\"_blank\">⇒ここへ行く</a>";
-        //    info += "</div>";
-
-        //    //情報窓の表示
-        //    var infoWindow = new google.maps.InfoWindow({
-        //        content: info
-        //    });
-        //    infoWindow.open(map, marker);
-
-        //    //マーカーのクリック時にも情報窓を表示する
-        //    marker.addListener("click", function () {
-        //        infoWindow.open(map, marker);
-        //    });
-        }
 
         function createMarker1(place) {
             //マーカー表示
